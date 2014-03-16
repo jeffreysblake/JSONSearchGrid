@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>JSON Search Grid Example</title>    
+</head>
+<body>
+    <div>
+    <input type="text" id="txtSearchBox" onkeyup="matchFields('txtSearchBox')" />
+    <div id="scrollTableContainer">
+    </div>
+    </div>
+    <script type="text/javascript">
+	var JsonObj = { rows: [
+        { "FirstName": "John", "LastName": "Smith", "PhoneNumber": "1 (111) 111 - 1111" },
+        { "FirstName": "Jane", "LastName": "Smith", "PhoneNumber": "1 (222) 222 - 2222" },
+        { "FirstName": "John", "LastName": "Arbuckle", "PhoneNumber": "1 (333) 333 - 3333" }
+    ]
+};
+
+function StringBuffer() {
+    this.buffer = [];
+}
+
+StringBuffer.prototype.append = function append(string) {
+    this.buffer.push(string);
+    return this;
+};
+
+StringBuffer.prototype.toString = function toString() {
+    return this.buffer.join('');
+};
+
+function indexOfArr(tempArray, searchString) {
+    for (countIndex in tempArray) {
+        if (tempArray[countIndex].toLowerCase().indexOf(searchString) >= 0)
+            return countIndex;
+    }
+    return -1;
+}
+
+function matchFields(ControlId) {
+    var searchText = document.getElementById(ControlId).value;
+    var htmlToWrite = new StringBuffer();
+    var headersHtml = new StringBuffer();
+
+    if (typeof JsonObj != 'undefined') {
+        if (searchText.length == 0) {
+            document.getElementById('scrollTableContainer').style.display = 'none';
+            document.getElementById('scrollTableContainer').innerHTML = "";
+            return;
+        }
+
+        searchArr = searchText.split(" ");
+        keywordCount = 0;
+        for (index in searchArr) {
+            if (searchArr[index].length > 0) {
+                keywordCount += 1;
+            }
+        }
+
+        if (typeof displayWidth == 'undefined') {
+            htmlToWrite.append('<table id="myTable" class="dataTableNoWidthSpecified" cellpadding="0" cellspacing="0">');
+            htmlToWrite.append('<thead id="mythead">');
+        }
+        else {
+            htmlToWrite.append('<table id="myTable" class="dataTableWidthSpecified" cellpadding="0" cellspacing="0">');
+            htmlToWrite.append('<thead id="mythead">');
+        }
+        row0 = JsonObj.rows[0];
+        for (index in row0) {
+            headersHtml.append(
+        '<th><b>' + index + '</b></th>');
+        }
+        htmlToWrite.append('<tr id="mytr">' + headersHtml.toString() + '</tr>');
+        htmlToWrite.append('</thead><tbody>');
+
+        rowCount = 0;
+
+        for (count = 0; count < JsonObj.rows.length; count++)
+        {
+            rowObj = JsonObj.rows[count];
+
+            matchCount = 0;
+
+            var resultsArr = new Array();
+
+            for (fieldObj in rowObj) {
+                if (rowObj[fieldObj].length > 0) {
+                    for (keyword in searchArr) {
+                        if (searchArr[keyword].length > 0) {
+                            if (rowObj[fieldObj].toLowerCase().indexOf(searchArr[keyword].toLowerCase()) >= 0) {
+                                if (indexOfArr(resultsArr, searchArr[keyword].toLowerCase()) == -1) {
+                                    resultsArr[matchCount] = searchArr[keyword].toLowerCase()
+                                    matchCount += 1;
+                                }
+                            }
+
+                        }
+                    }
+                }
+
+            }
+
+            if (resultsArr.length > 0 && keywordCount == resultsArr.length)
+            {
+                matchCount = 0;
+                htmlToWrite.append('<tr>')
+                rowCount = rowCount + 1;
+                for (fieldObj in rowObj) {
+                    htmlToWrite.append(
+                    '<td>' + rowObj[fieldObj] + '</td>');
+                }
+                htmlToWrite.append('</tr>');
+            }
+        }
+        htmlToWrite.append('</tbody></table>');
+        document.getElementById('scrollTableContainer').style.display = 'block';
+        document.getElementById('scrollTableContainer').innerHTML = htmlToWrite.toString();
+        document.getElementById('scrollTableContainer').style.width = document.getElementById('myTable').offsetWidth + 17;
+    }
+}
+	</script>
+</body>
+</html>
